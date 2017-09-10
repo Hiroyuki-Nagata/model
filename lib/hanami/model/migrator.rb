@@ -89,6 +89,7 @@ module Hanami
       #
       # @see Hanami::Model::Configuration#adapter
       # @see Hanami::Model::Configuration#migrations
+      # @see Hanami::Model::Configuration#rollback
       #
       # @example Migrate Up
       #   require 'hanami/model'
@@ -122,6 +123,42 @@ module Hanami
       # NOTE: Class level interface SHOULD be removed in Hanami 2.0
       def self.migrate(version: nil)
         new.migrate(version: version)
+      end
+
+      # Rollback database schema
+      #
+      # @param steps [Number,NilClass] steps to rollback
+      #
+      # @raise [Hanami::Model::MigrationError] if an error occurs
+      #
+      # @since x.x.x
+      #
+      # @see Hanami::Model::Configuration#adapter
+      # @see Hanami::Model::Configuration#migrations
+      # @see Hanami::Model::Configuration#migrate
+      #
+      # @example Rollback
+      #   require 'hanami/model'
+      #   require 'hanami/model/migrator'
+      #
+      #   Hanami::Model.configure do
+      #     # ...
+      #     adapter    :sql, 'postgres://localhost/foo'
+      #     migrations 'db/migrations'
+      #   end
+      #
+      #   # Reads all files from "db/migrations" and apply them
+      #   Hanami::Model::Migrator.migrate
+      #
+      #   # By default only rollback one version
+      #   Hanami::Model::Migrator.rollback
+      #
+      #   # Use a hash passing steps value, it will rollbacks those versions
+      #   Hanami::Model::Migrator.rollback(steps: 2)
+      #
+      # NOTE: Class level interface SHOULD be removed in Hanami 2.0
+      def self.rollback(steps: 1)
+        new.rollback(steps: steps)
       end
 
       # Migrate, dump schema, delete migrations.
@@ -264,6 +301,14 @@ module Hanami
       # @see Hanami::Model::Migrator.migrate
       def migrate(version: nil)
         adapter.migrate(migrations, version) if migrations?
+      end
+
+      # @since x.x.x
+      # @api private
+      #
+      # @see Hanami::Model::Migrator.rollback
+      def rollback(steps: 1)
+        adapter.rollback(migrations, steps) if migrations?
       end
 
       # @since 0.7.0
